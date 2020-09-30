@@ -1,4 +1,4 @@
-package main
+package services
 
 import (
 	"github.com/Abdelwhab-1/book_store_user_service-/app"

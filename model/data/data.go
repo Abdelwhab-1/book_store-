@@ -5,9 +5,9 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 )
-
+var User_db *sql.DB
 type User struct {
-	Id       int `json:"id ometempty"`
+	Id       int64 `json:"id ometempty"`
 	Password int
 	Fname    string `json:"firstName"`
 	Lname    string `json:"lastName"`
@@ -18,14 +18,13 @@ type Dbinterface struct {
 	Db *sql.DB
 }
 
-func (dbi Dbinterface) FindUserById(id int) (user *User, err error) {
-	user = new(User)
-	row := dbi.Db.QueryRow("SELECT fname,lname,email,phone FROM users WHERE id=$1", id)
+func (dbi Dbinterface) FindUserById(user *User) (User *User, err error) {
+	row := dbi.Db.QueryRow("SELECT fname,lname,email,phone FROM users WHERE id=$1",user.id)
 	err = row.Scan(&user.Fname, &user.Lname, &user.Email, &user.Phone)
 	if err != nil {
 		return nil, err
 	}
-	return
+	return User , nil
 }
 func (dbi Dbinterface) CreatUser(user *User) (*sql.Result,*User, error) {
 	stmt, err := dbi.Db.Prepare("INSERT INTO users(password,fname,lname,email,phone)VALUES($1,$2,$3,$4,$5)")
@@ -51,7 +50,7 @@ func(dbi Dbinterface) UpdateUser(user *User)(*sql.Result,*User, error){
 	}
 	return &res , user , err
 }
-func(dbi Dbinterface)DeletUser(id  int)(*sql.Result,error){
+func(dbi Dbinterface)DeletUser(id  int64)(*sql.Result,error){
 	stmt , err := dbi.Db.Prepare("DELETE FROM users  WHERE id = $1")
 	if err != nil {
 		return nil , err
