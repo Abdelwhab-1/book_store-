@@ -3,6 +3,7 @@ package data
 import (
 	"database/sql"
 	"fmt"
+	"github.com/Abdelwhab-1/book_store_user_service-/utils/crypto"
 	"github.com/DATA-DOG/go-sqlmock"
 	"log"
 	"testing"
@@ -20,7 +21,7 @@ func TestFinduserbyid(t *testing.T) {
 	//initiation
 	u := User{
 		Id:       2139850275894,
-		Password: 1234793857,
+		Password: "1234793857",
 		Fname:    "abdelwhab",
 		Lname:    "elassfer",
 		Email:    "abdo@gmail.com",
@@ -35,15 +36,18 @@ func TestFinduserbyid(t *testing.T) {
 
 	mock.ExpectQuery(query).WillReturnRows(rows)
 	//exeqution
-	user, err := dbi.FindUserById(2139850275894)
+	user, err := dbi.FindUserById(&u)
 	//validation
-	if err != nil || user.Fname != u.Fname {
-		fmt.Println(rows)
-		t.Errorf("error : %v", err)
-	}
-	if err != nil  {
-		if user != nil{
-			t.Errorf("expecting user to be nil found %v",user)
+	fmt.Println(err)
+	fmt.Println(user)
+	if err != nil {
+		t.Error(err)
+		if user == nil {
+			t.Errorf("expecting user to be nil found %v", user)
+		} else {
+			if u.Email != user.Email {
+				t.Error("unmatched results ")
+			}
 		}
 	}
 
@@ -51,9 +55,9 @@ func TestFinduserbyid(t *testing.T) {
 
 func TestFinduserbyiderr(t *testing.T) {
 	//initiation
-	u := User{
+	u := &User{
 		Id:       2139850275894,
-		Password: 1234793857,
+		Password: "1234793857",
 		Fname:    "abdelwhab",
 		Lname:    "elassfer",
 		Email:    "abdo@gmail.com",
@@ -63,39 +67,38 @@ func TestFinduserbyiderr(t *testing.T) {
 	dbi := Dbinterface{Db: db}
 
 	query := "SELECT  fname,lname,email,phone FROM users WHERE id=\\$1"
-	rows := sqlmock.NewRows([]string{"id","fname", "lname", "email", "phone"}).
-		AddRow(u.Id,u.Fname, u.Lname, u.Email, u.Phone)
+	rows := sqlmock.NewRows([]string{"id", "fname", "lname", "email", "phone"}).
+		AddRow(u.Id, u.Fname, u.Lname, u.Email, u.Phone)
 
 	mock.ExpectQuery(query).WillReturnRows(rows)
 	//exeqution
-	user, err := dbi.FindUserById(32445)
+	user, err := dbi.FindUserById(u)
 	//validation
 
-	if err == nil  {
+	if err == nil {
 		t.Errorf("should hav  error  we could not find  the user %v", user)
 	}
-
 
 }
 
 func TestCreatuser(t *testing.T) {
-    //init
+	//init
 	db, mock := newmock()
 	dbi := Dbinterface{Db: db}
 	u := &User{
-		Password: 1234793857,
+		Password: "1234793857",
 		Fname:    "abdelwhab",
 		Lname:    "elassfer",
 		Email:    "abdo@gmail.com",
 		Phone:    01063260347}
 	query := "INSERT INTO users\\(password,fname,lname,email,phone\\)VALUES\\(\\$1,\\$2,\\$3,\\$4,\\$5\\)"
 	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(u.Password, u.Fname, u.Lname, u.Email, u.Phone).
+	prep.ExpectExec().WithArgs(crypto.Passwordhash(u.Password), u.Fname, u.Lname, u.Email, u.Phone).
 		WillReturnResult(sqlmock.NewResult(1, 0))
 	//Execute
-	result, us ,err := dbi.CreatUser(u)
+	result, us, err := dbi.CreatUser(u)
 	// Validate
-	if err != nil || us.Email != u.Email{
+	if err != nil || us.Email != u.Email {
 		fmt.Println(result)
 		t.Fatal(err)
 
@@ -103,75 +106,73 @@ func TestCreatuser(t *testing.T) {
 
 }
 
-func TestUpdateusererr(t *testing.T){
- db , mock := newmock()
- dbi := Dbinterface{Db: db}
- u := &User{
-   Password: 1234793857,
-   Fname:    "abdelwhab",
-   Lname:    "elassfer",
-   Email:    "abdo@gmail.com",
-   Phone:    01063260347}
- query := "UPDATE users SET password=\\$1 ,fname=\\$2 ,lname=\\$3 ,email=\\$4,phone=\\$5 WHERE  id = \\$6"
- stmt := mock.ExpectPrepare(query)
- stmt.ExpectExec().WithArgs(u.Password,u.Fname,u.Lname,u.Email,u.Phone,47512783481295).WillReturnResult(sqlmock.NewResult(0,0 ))
- _ ,_ ,err := dbi.UpdateUser(u)
-
- if err == nil {
- 	t.Errorf("should have an error %v",err)
- }
-}
-
-
-func TestUpdateuser(t *testing.T){
-	db , mock := newmock()
+func TestUpdateusererr(t *testing.T) {
+	db, mock := newmock()
 	dbi := Dbinterface{Db: db}
 	u := &User{
-		Password: 1234793857,
+		Password: "1234793857",
 		Fname:    "abdelwhab",
 		Lname:    "elassfer",
 		Email:    "abdo@gmail.com",
 		Phone:    01063260347}
 	query := "UPDATE users SET password=\\$1 ,fname=\\$2 ,lname=\\$3 ,email=\\$4,phone=\\$5 WHERE  id = \\$6"
 	stmt := mock.ExpectPrepare(query)
-	stmt.ExpectExec().WithArgs(u.Password,u.Fname,u.Lname,u.Email,u.Phone,u.Id).WillReturnResult(sqlmock.NewResult(0,1 ))
-	res ,u ,err := dbi.UpdateUser(u)
+	stmt.ExpectExec().WithArgs(crypto.Passwordhash(u.Password), u.Fname, u.Lname, u.Email, u.Phone, 47512783481295).WillReturnResult(sqlmock.NewResult(0, 0))
+	_, _, err := dbi.UpdateUser(u)
+
+	if err == nil {
+		t.Errorf("should have an error %v", err)
+	}
+}
+
+func TestUpdateuser(t *testing.T) {
+	db, mock := newmock()
+	dbi := Dbinterface{Db: db}
+	u := &User{
+		Password: "1234793857",
+		Fname:    "abdelwhab",
+		Lname:    "elassfer",
+		Email:    "abdo@gmail.com",
+		Phone:    01063260347}
+	query := "UPDATE users SET password=\\$1 ,fname=\\$2 ,lname=\\$3 ,email=\\$4,phone=\\$5 WHERE  id = \\$6"
+	stmt := mock.ExpectPrepare(query)
+	stmt.ExpectExec().WithArgs(crypto.Passwordhash(u.Password), u.Fname, u.Lname, u.Email, u.Phone, u.Id).WillReturnResult(sqlmock.NewResult(0, 1))
+	res, u, err := dbi.UpdateUser(u)
 	if err != nil || u == nil || res == nil {
 		t.Error("coudln't update the user enternal error ")
 	}
 }
-func  TestDeleteuser(t *testing.T){
+func TestDeleteuser(t *testing.T) {
 	u := &User{
-		Password: 1234793857,
+		Password: "1234793857",
 		Fname:    "abdelwhab",
 		Lname:    "elassfer",
 		Email:    "abdo@gmail.com",
 		Phone:    01063260347}
-	db , mock := newmock()
+	db, mock := newmock()
 	dbi := Dbinterface{db}
 	stmt := mock.ExpectPrepare("DELETE FROM users  WHERE id = \\$1")
-	stmt.ExpectExec().WithArgs(u.Id).WillReturnResult(sqlmock.NewResult(0,1))
-	_ ,err := dbi.DeletUser(u.Id)
+	stmt.ExpectExec().WithArgs(u.Id).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err := dbi.DeletUser(u.Id)
 
-	if err  != nil {
-		t.Errorf("should have passed but have error %s",err)
+	if err != nil {
+		t.Errorf("should have passed but have error %s", err)
 	}
 }
-func  TestDeleteusererr(t *testing.T){
+func TestDeleteusererr(t *testing.T) {
 	u := &User{
-		Id: 123456789,
-		Password: 1234793857,
+		Id:       123456789,
+		Password: "1234793857",
 		Fname:    "abdelwhab",
 		Lname:    "elassfer",
 		Email:    "abdo@gmail.com",
 		Phone:    01063260347}
-	db , mock := newmock()
+	db, mock := newmock()
 	dbi := Dbinterface{db}
 	stmt := mock.ExpectPrepare("DELETE FROM users  WHERE id = \\$1")
-	stmt.ExpectExec().WithArgs(59134589732598).WillReturnResult(sqlmock.NewResult(0,1))
-	_ ,err := dbi.DeletUser(u.Id)
-	if err  == nil {
-		t.Errorf("should have  error  %v",err)
+	stmt.ExpectExec().WithArgs(59134589732598).WillReturnResult(sqlmock.NewResult(0, 1))
+	_, err := dbi.DeletUser(u.Id)
+	if err == nil {
+		t.Errorf("should have  error  %v", err)
 	}
 }
-

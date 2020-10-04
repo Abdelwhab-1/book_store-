@@ -6,7 +6,7 @@ import (
 	_ "net/http"
 )
 
-func StartApp(mux *mux.Rowter) {
+func StartApp(mux *mux.Router) {
 	mapper(mux)
 	srv := http.Server{
 		Addr:    "127.0.0.1:8000",
