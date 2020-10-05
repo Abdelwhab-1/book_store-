@@ -16,6 +16,7 @@ func UnmarshUser(r *http.Request, data interface{}){
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(data)
 	if err != nil {
+
 		log.Fatal(err)
 	}
 }

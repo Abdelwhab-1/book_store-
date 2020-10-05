@@ -6,8 +6,18 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 )
+func init(){
+	datasourcname := "host=localhost port=5432 user=abdelwhab dbname=category sslmode=disable password=password"
+	user_db , err := sql.Open("postgres",datasourcname)
+	if err  != nil {
+		panic(err)
+	}
+	Db = Dbinterface{
+		Db:  user_db,
+	}
+}
+var Db Dbinterface
 
-var User_db *sql.DB
 
 type User struct {
 	Id       int64  `json:"id ometempty"`

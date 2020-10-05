@@ -16,26 +16,25 @@ type userservices struct {
 	
 }
 func(s *userservices)Get(user *data.User)(*data.User , error){
-	db := data.User_db
-	dbi := data.Dbinterface{db}
+	dbi := data.Db
 	return dbi.FindUserById(user)
 }
 func(s *userservices)Create(user *data.User)(*data.User , error){
-	db := data.User_db
-	dbi := data.Dbinterface{db}
+	dbi := data.Db
+
 	_, user , err := dbi.CreatUser(user)
 	return user,err
 }
 
 func(s *userservices)Update(user *data.User)(*data.User, error){
-	db := data.User_db
-	dbi := data.Dbinterface{db}
+	dbi := data.Db
+
 	_, user , err := dbi.UpdateUser(user)
 	return user , err
 }
 func(s *userservices)Delete(id int64)(error){
-	db := data.User_db
-	dbi := data.Dbinterface{db}
+	dbi := data.Db
+
 	_,err := dbi.DeletUser(id)
 	return err
 }

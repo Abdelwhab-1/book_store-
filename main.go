@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/Abdelwhab-1/book_store_user_service-/app"
-	"net/http"
+	"github.com/gorilla/mux"
 )
-
+var router *mux.Router
+func init(){
+	router = mux.NewRouter()
+}
 func main() {
-	srv = http.Server{
-		Addr:    "127.0.0.1:8000",
-		Handler: app.Mux,
-	}
+	app.StartApp(router)
 }

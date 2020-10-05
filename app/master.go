@@ -12,4 +12,5 @@ func StartApp(mux *mux.Router) {
 		Addr:    "127.0.0.1:8000",
 		Handler: mux,
 	}
+	srv.ListenAndServe()
 }

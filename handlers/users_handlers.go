@@ -28,7 +28,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	datamarshal.MarshUser(w,user)
-	w.WriteHeader(http.StatusOK)
+
 }
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	user := &data.User{}
@@ -39,26 +39,22 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	datamarshal.MarshUser(w,user)
 	// TODO :  should deal with the headrs and the status code .
-	w.WriteHeader(http.StatusOK)
 }
 func EditUser(w http.ResponseWriter, r *http.Request) {
-
 	id, err := getid(r)
 	if err != nil {
 		//TODO : should handle the error here
 		log.Fatal(err)
 	}
 
-	var user *data.User
+	user := &data.User{Id: id}
 	datamarshal.UnmarshUser(r, user)
-	user.Id = id
 	user , err = services.UserService.Update(user)
 	if err != nil{
 		log.Fatal(err)
 		//TODO : should handle this erorr
 	}
 	datamarshal.MarshUser(w,user)
-	w.WriteHeader(http.StatusOK)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -72,5 +68,4 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		//TODO : shuld handle this error the right way
 	}
 	//TODO : should sned the right status code 
-	w.WriteHeader(http.StatusOK)
 }
