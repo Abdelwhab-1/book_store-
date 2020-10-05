@@ -20,8 +20,8 @@ var Db Dbinterface
 
 
 type User struct {
-	Id       int64  `json:"id ometempty"`
-	Password string `json:"passwd"'`
+	Id       int64  `json:"id, ometempty"`
+	Password string `json:"passwd"`
 	Fname    string `json:"firstName"`
 	Lname    string `json:"lastName"`
 	Email    string `jsone:"email"`
